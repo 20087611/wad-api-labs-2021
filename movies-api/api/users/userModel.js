@@ -7,6 +7,18 @@ const UserSchema = new Schema({
   password: {type: String, required: true }
 });
 
+UserSchema.statics.findByUserName = function (username) {
+  return this.findOne({ username: username });
+};
+
+UserSchema.methods.comparePassword = function (candidatePassword) {
+  const isMatch = this.password === candidatePassword;
+  if (!isMatch) {
+    throw new Error('Password mismatch');
+  }
+  return this;
+};
+
 const MovieSchema = new Schema({
   id: Number,
   title: String

@@ -44,27 +44,28 @@ router.post('/', asyncHandler(async (req, res) => {
     }
 });
 
-router.post('/:userName/favourites', asyncHandler(async (req, res) => {
-    const newFavourite = req.body.id;
-    const userName = req.params.userName;
-    const movie = await movieModel.findByMovieDBId(newFavourite);
-    const user = await User.findByUserName(userName);
-    const movieRegex = new RegExp(movie._id)
-    if(movieRegex.test(user.favourites)==false){
-    await user.favourites.push(movie._id);
+router.post('/', asyncHandler(async (req, res) => {
+    if (req.query.action === 'register') {  //if action is 'register' then save to DB
+        await User(req.body).save();
+        res.status(201).json({
+            code: 201,
+            msg: 'Successful created new user.',
+        });
     }
-    else{
-        res.status(404).json({msg: "movie already in favourites"})
+    else {  //NEW CODE!!!
+        const user = await User.findByUserName(req.body.username);
+        if (user.comparePassword(req.body.password)) {
+            req.session.user = req.body.username;
+            req.session.authenticated = true;
+            res.status(200).json({
+                success: true,
+                token: "temporary-token"
+              });
+        } else {
+            res.status(401).json('authentication failed');
+        }
     }
-    await user.save(); 
-    res.status(201).json(user); 
-  }));
-
-  router.get('/:userName/favourites', asyncHandler( async (req, res) => {
-    const userName = req.params.userName;
-    const user = await User.findByUserName(userName).populate('favourites');
-    res.status(201).json(user.favourites);
-  }));
+}));
 
 
 export default router;
