@@ -13,14 +13,26 @@ router.get('/:userName/favourites', asyncHandler( async (req, res) => {
     res.status(200).json(user.favourites);
   }));
 
-router.post('/:userName/favourites', asyncHandler(async (req, res) => {
+rrouter.post('/:userName/favourites', asyncHandler(async (req, res) => {
     const newFavourite = req.body.id;
     const userName = req.params.userName;
     const movie = await movieModel.findByMovieDBId(newFavourite);
     const user = await User.findByUserName(userName);
+    const movieRegex = new RegExp(movie._id)
+    if(movieRegex.test(user.favourites)==false){
     await user.favourites.push(movie._id);
+    }
+    else{
+        res.status(404).json({msg: "movie already in favourites"})
+    }
     await user.save(); 
     res.status(201).json(user); 
+  }));
+
+  router.get('/:userName/favourites', asyncHandler( async (req, res) => {
+    const userName = req.params.userName;
+    const user = await User.findByUserName(userName).populate('favourites');
+    res.status(201).json(user.favourites);
   }));
 
 // register
