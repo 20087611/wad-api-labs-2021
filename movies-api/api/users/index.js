@@ -69,11 +69,14 @@ router.post('/:userName/favourites', asyncHandler(async (req, res) => {
     res.status(201).json(user); 
   }));
 
-  router.get('/:userName/favourites', asyncHandler( async (req, res) => {
-    const userName = req.params.userName;
-    const user = await User.findByUserName(userName).populate('favourites');
-    res.status(201).json(user.favourites);
-  }));
+  router.get('/:id/favourites', async (req, res) => {
+    const user = await User.findById(req.params.id);
+    if (user) {
+        res.status(200).json(user.favourites);
+    } else {
+        res.status(404).json({ code: 404, msg: 'Unable to find favourites' });
+    }
+});
 
 
 export default router;
