@@ -2,14 +2,26 @@ import express from 'express';
 import User from './userModel';
 import asyncHandler from 'express-async-handler';
 import jwt from 'jsonwebtoken';
+import movieModel from '../movies/movieModel';
 
 const router = express.Router(); // eslint-disable-line
 
 // Get all users
-router.get('/', async (req, res) => {
-    const users = await User.find();
-    res.status(200).json(users);
-});
+router.get('/:userName/favourites', asyncHandler( async (req, res) => {
+    const userName = req.params.userName;
+    const user = await User.findByUserName(userName).populate('favourites');
+    res.status(200).json(user.favourites);
+  }));
+
+router.post('/:userName/favourites', asyncHandler(async (req, res) => {
+    const newFavourite = req.body.id;
+    const userName = req.params.userName;
+    const movie = await movieModel.findByMovieDBId(newFavourite);
+    const user = await User.findByUserName(userName);
+    await user.favourites.push(movie._id);
+    await user.save(); 
+    res.status(201).json(user); 
+  }));
 
 // register
 router.post('/',asyncHandler( async (req, res, next) => {
